@@ -52,12 +52,12 @@ public class TreeSet<T extends Comparable<T>> implements SortedSet<T> {
 
     @Override
     public T first() {
-        return (superior == null || lowerBound == null) ? set.first() : lowerBound;
+        return (superior == null) ? set.first() : (lowerBound == null) ? superior.first() : lowerBound;
     }
 
     @Override
     public T last() {
-        return (superior == null || higherBound == null) ? set.last() : higherBound;
+        return (superior == null) ? set.last() : (higherBound == null) ? superior.last() : higherBound;
     }
 
     @Override
