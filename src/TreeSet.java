@@ -23,8 +23,10 @@ public class TreeSet<T extends Comparable<T>> implements SortedSet<T> {
     }
 
     private boolean inBounds(T key) {
-        int lowerComparison = key.compareTo(lowerBound);
-        int higherComparison = key.compareTo(higherBound);
+        T lower = lower();
+        T higher = higher();
+        int lowerComparison = (lower == null) ? 1 : key.compareTo(lower);
+        int higherComparison = (higher == null) ? -1 : key.compareTo(higher);
         return (((includeLower) ? lowerComparison >= 0 : lowerComparison > 0)
                 && ((includeHigher) ? higherComparison <= 0 : higherComparison < 0));
     }
@@ -40,8 +42,8 @@ public class TreeSet<T extends Comparable<T>> implements SortedSet<T> {
         T lower = lower();
         T higher = higher();
         if (superior != null
-                && ((lower != null && fromElement.compareTo(lower) < 0)
-                || (higher != null && toElement.compareTo(higher) > 0)))
+                && ((lower != null && fromElement.compareTo(lower) <= 0)
+                || (higher != null && toElement.compareTo(higher) >= 0)))
             throw new IllegalArgumentException("key ot of range");
         return new TreeSet<>(this, fromElement, toElement, true, false);
     }
@@ -49,7 +51,7 @@ public class TreeSet<T extends Comparable<T>> implements SortedSet<T> {
     @Override
     public SortedSet<T> headSet(T toElement) {
         T higher = higher();
-        if (superior != null && (higher != null && toElement.compareTo(higher) > 0))
+        if (superior != null && (higher != null && toElement.compareTo(higher) >= 0))
             throw new IllegalArgumentException("key ot of range");
         return new TreeSet<>(this, null, toElement, true, false);
     }
@@ -57,7 +59,7 @@ public class TreeSet<T extends Comparable<T>> implements SortedSet<T> {
     @Override
     public SortedSet<T> tailSet(T fromElement) {
         T lower = lower();
-        if (superior != null && (lower != null && fromElement.compareTo(lower) < 0))
+        if (superior != null && (lower != null && fromElement.compareTo(lower) <= 0))
             throw new IllegalArgumentException("key ot of range");
         return new TreeSet<>(this, fromElement, null, true, true);
     }
@@ -102,7 +104,10 @@ public class TreeSet<T extends Comparable<T>> implements SortedSet<T> {
 
     @Override
     public int size() {
-        return (superior == null) ? set.getSize() : (lowerBound == higherBound) ? 0 : set.count(lowerBound, higherBound, includeHigher && includeLower);
+        if (superior == null) return set.getSize();
+        if (lowerBound == higherBound || set.getSize() == 0) return 0;
+        return set.count((lowerBound == null)? superior.first() : lowerBound,
+                (higherBound == null) ? superior.last() : higherBound, includeHigher && includeLower);
     }
 
     @Override
@@ -213,12 +218,11 @@ public class TreeSet<T extends Comparable<T>> implements SortedSet<T> {
     @Override
     public boolean retainAll(Collection<?> c) {
         boolean modified = false;
-        if (iterator().hasNext()) {
-            T i = iterator().next();
-            for (T j = i; iterator().hasNext(); j = iterator().next()) {
-                if (!c.contains(j))
-                    modified = remove(j) || modified;
-            }
+        Iterator<T> iterator = iterator();
+        while (iterator.hasNext()) {
+            T i = iterator.next();
+            if (!c.contains(i))
+                modified = remove(i) || modified;
         }
         return modified;
     }

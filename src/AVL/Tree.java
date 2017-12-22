@@ -10,8 +10,9 @@ public class Tree<T extends Comparable<T>> {
     public int getSize() {
         return size;
     }
-    public int count(T from, T to, boolean incudeHigher) {
+    public int count(T from, T to, boolean includeHigher) {
         int count = 0;
+        if (contains(from)) count++;
         T current = next(from);
         if (current == null) return 0;
         do {
@@ -19,7 +20,7 @@ public class Tree<T extends Comparable<T>> {
             count++;
         }
         while (current != null && current.compareTo(to) < 0);
-        return count + ((incudeHigher) ? 1 : 0);
+        return count + ((includeHigher) ? 1 : 0);
     }
 
     private Node<T> turnLeft(Node<T> n) {
@@ -155,10 +156,12 @@ public class Tree<T extends Comparable<T>> {
         return max(root).key;
     }
     public T next(T key) {
+        if (root == null) return null;
         T next = nextAfter(root, max(root), key).key;
         return (next.compareTo(key) > 0)  ? next : null;
     }
     public T prev(T key) {
+        if (root == null) return null;
         T prev =  prevBefore(root, min(root), key).key;
         return (prev.compareTo(key) < 0) ? prev : null;
     }
